@@ -1,53 +1,59 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+const initSqlJs = require('sql.js');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const dbPath = path.join(__dirname, 'healthlink.db');
-const db = new sqlite3.Database(dbPath);
+let db;
 
 app.use(cors());
 app.use(express.json());
 
-function run(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.run(sql, params, function onRun(error) {
-      if (error) {
-        reject(error);
-        return;
-      }
+function readRows(result) {
+  if (!result.length) {
+    return [];
+  }
 
-      resolve(this);
-    });
-  });
+  const [{ columns, values }] = result;
+  return values.map((valueSet) =>
+    columns.reduce((row, column, index) => {
+      row[column] = valueSet[index];
+      return row;
+    }, {}),
+  );
+}
+
+function run(sql, params = []) {
+  const statement = db.prepare(sql);
+  statement.bind(params);
+  statement.step();
+  statement.free();
+
+  const lastIdRows = readRows(db.exec('SELECT last_insert_rowid() AS lastID'));
+  return { lastID: lastIdRows[0]?.lastID };
 }
 
 function get(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.get(sql, params, (error, row) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve(row);
-    });
-  });
+  const rows = all(sql, params);
+  return rows[0];
 }
 
 function all(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    db.all(sql, params, (error, rows) => {
-      if (error) {
-        reject(error);
-        return;
-      }
+  const statement = db.prepare(sql);
+  statement.bind(params);
 
-      resolve(rows);
-    });
-  });
+  const rows = [];
+  while (statement.step()) {
+    rows.push(statement.getAsObject());
+  }
+
+  statement.free();
+  return rows;
+}
+
+async function initialiseDatabase() {
+  const SQL = await initSqlJs();
+  db = new SQL.Database();
 }
 
 async function seedDatabase() {
@@ -307,7 +313,8 @@ app.delete('/api/appointments/:id', async (request, response) => {
   }
 });
 
-seedDatabase()
+initialiseDatabase()
+  .then(seedDatabase)
   .then(() => {
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`HealthLink API running on http://0.0.0.0:${PORT}`);

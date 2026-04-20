@@ -2,7 +2,7 @@
 
 HealthLink UK is a React Native mobile application built with Expo. It allows patients to request hospital appointments and allows hospital staff to confirm or reject those appointment requests.
 
-The project also includes a Node.js and Express REST API with an SQLite database.
+The project also includes a Node.js and Express REST API with an SQLite database layer using `sql.js`.
 
 ## Main Features
 
@@ -143,13 +143,7 @@ Expected response:
 
 ## SQLite Database
 
-The SQLite database is created automatically when the backend starts.
-
-Database file:
-
-```text
-backend/healthlink.db
-```
+The SQLite database is created automatically in the backend when the server starts.
 
 The backend creates and uses three main tables:
 
@@ -174,7 +168,6 @@ If the backend does not start:
 If old database data appears:
 
 - Stop the backend.
-- Delete `backend/healthlink.db`.
 - Run `npm run dev` again.
 
 The database will be recreated with sample data.
