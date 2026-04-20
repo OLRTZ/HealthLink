@@ -6,10 +6,9 @@
     "node": "20.x"
   },
   "scripts": {
-    "dev": "concurrently \"npm:server\" \"npm:expo\"",
+    "dev": "concurrently \"npm:server\" \"npm:start\"",
     "server": "node backend/server.js",
     "start": "expo start",
-    "expo": "node scripts/start-expo.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web"
