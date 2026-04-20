@@ -80,11 +80,6 @@ async function seedDatabase() {
     )
   `);
 
-  await run("ALTER TABLE patient_profile ADD COLUMN gender TEXT NOT NULL DEFAULT ''").catch(() => {});
-  await run("ALTER TABLE patient_profile ADD COLUMN marital_status TEXT NOT NULL DEFAULT ''").catch(() => {});
-  await run("ALTER TABLE patient_profile ADD COLUMN allergies TEXT NOT NULL DEFAULT ''").catch(() => {});
-  await run("ALTER TABLE patient_profile ADD COLUMN emergency_contact TEXT NOT NULL DEFAULT ''").catch(() => {});
-
   await run(`
     CREATE TABLE IF NOT EXISTS appointments (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
