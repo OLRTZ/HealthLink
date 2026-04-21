@@ -94,8 +94,10 @@ export default function App() {
           <AppointmentsScreen
             appointments={viewModel.appointments}
             message={viewModel.message}
+            rescheduleSlots={viewModel.slots}
             styles={styles}
             onCancel={viewModel.cancelAppointment}
+            onReschedule={viewModel.requestReschedule}
           />
         )}
 

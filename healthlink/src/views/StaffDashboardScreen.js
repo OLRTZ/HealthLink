@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
 export default function StaffDashboardScreen({
@@ -11,13 +12,25 @@ export default function StaffDashboardScreen({
   onSearchChange,
   styles,
 }) {
+  const [staffNotes, setStaffNotes] = useState({});
+
+  const updateStaffNote = (appointmentId, value) => {
+    setStaffNotes({
+      ...staffNotes,
+      [appointmentId]: value,
+    });
+  };
+
   const filteredByStatus = appointments.filter((appointment) => {
     if (filter === 'All') {
       return true;
     }
 
     if (filter === 'Waiting') {
-      return appointment.status === 'Waiting for hospital';
+      return (
+        appointment.status === 'Waiting for hospital' ||
+        appointment.status === 'Reschedule requested'
+      );
     }
 
     if (filter === 'Confirmed') {
@@ -35,7 +48,9 @@ export default function StaffDashboardScreen({
       appointment.nhsNumber.toLowerCase().includes(searchText) ||
       appointment.hospital.toLowerCase().includes(searchText) ||
       appointment.department.toLowerCase().includes(searchText) ||
-      appointment.reason.toLowerCase().includes(searchText)
+      appointment.reason.toLowerCase().includes(searchText) ||
+      (appointment.rescheduleRequest || '').toLowerCase().includes(searchText) ||
+      (appointment.staffNote || '').toLowerCase().includes(searchText)
     );
   });
 
@@ -99,13 +114,30 @@ export default function StaffDashboardScreen({
           </Text>
           <Text style={styles.text}>Reason: {appointment.reason}</Text>
           <Text style={styles.status}>Status: {appointment.status}</Text>
-          {appointment.status === 'Waiting for hospital' && (
+          {appointment.rescheduleRequest ? (
+            <Text style={styles.text}>
+              Requested new time: {appointment.rescheduleRequest}
+            </Text>
+          ) : null}
+          {appointment.staffNote ? (
+            <Text style={styles.text}>Staff note: {appointment.staffNote}</Text>
+          ) : null}
+          {(appointment.status === 'Waiting for hospital' ||
+            appointment.status === 'Reschedule requested') && (
             <>
+              <TextInput
+                accessibilityLabel={`Staff note for ${appointment.patientName}`}
+                style={styles.searchInput}
+                placeholder="Add staff note"
+                placeholderTextColor={styles.searchPlaceholder.color}
+                value={staffNotes[appointment.id] || ''}
+                onChangeText={(value) => updateStaffNote(appointment.id, value)}
+              />
               <Pressable
                 accessibilityLabel={`Confirm appointment for ${appointment.patientName}`}
                 accessibilityRole="button"
                 style={styles.mainButton}
-                onPress={() => onConfirm(appointment.id)}
+                onPress={() => onConfirm(appointment.id, staffNotes[appointment.id] || '')}
               >
                 <Text style={styles.mainButtonText}>Confirm Appointment</Text>
               </Pressable>
@@ -113,7 +145,7 @@ export default function StaffDashboardScreen({
                 accessibilityLabel={`Reject appointment for ${appointment.patientName}`}
                 accessibilityRole="button"
                 style={styles.cancelButton}
-                onPress={() => onReject(appointment.id)}
+                onPress={() => onReject(appointment.id, staffNotes[appointment.id] || '')}
               >
                 <Text style={styles.cancelButtonText}>Reject Appointment</Text>
               </Pressable>

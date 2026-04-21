@@ -43,10 +43,16 @@ export const api = {
       body: JSON.stringify(appointment),
     });
   },
-  updateAppointmentStatus(id, status) {
+  updateAppointmentStatus(id, status, staffNote = '') {
     return request(`/appointments/${id}/status`, {
       method: 'PATCH',
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, staffNote }),
+    });
+  },
+  requestAppointmentReschedule(id, rescheduleRequest) {
+    return request(`/appointments/${id}/reschedule`, {
+      method: 'PATCH',
+      body: JSON.stringify({ rescheduleRequest }),
     });
   },
   deleteAppointment(id) {

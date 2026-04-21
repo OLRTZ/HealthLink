@@ -132,9 +132,15 @@ export function useHealthLinkViewModel() {
     setScreen('login');
   };
 
-  const updateAppointmentStatus = async (id, status, successMessage, errorMessage) => {
+  const updateAppointmentStatus = async (
+    id,
+    status,
+    staffNote,
+    successMessage,
+    errorMessage,
+  ) => {
     try {
-      const updatedAppointment = await api.updateAppointmentStatus(id, status);
+      const updatedAppointment = await api.updateAppointmentStatus(id, status, staffNote);
       setAppointments(
         appointments.map((item) => (item.id === id ? updatedAppointment : item)),
       );
@@ -149,22 +155,44 @@ export function useHealthLinkViewModel() {
     }
   };
 
-  const confirmAppointment = (id) => {
+  const confirmAppointment = (id, staffNote = '') => {
     updateAppointmentStatus(
       id,
       'Confirmed',
+      staffNote,
       'Appointment confirmed by hospital staff.',
       'Appointment could not be confirmed.',
     );
   };
 
-  const rejectAppointment = (id) => {
+  const rejectAppointment = (id, staffNote = '') => {
     updateAppointmentStatus(
       id,
       'Rejected by hospital',
+      staffNote,
       'Appointment rejected by hospital staff.',
       'Appointment could not be rejected.',
     );
+  };
+
+  const requestReschedule = async (id, rescheduleRequest) => {
+    if (rescheduleRequest === '') {
+      setMessage('Please choose a new appointment time.');
+      return;
+    }
+
+    try {
+      const updatedAppointment = await api.requestAppointmentReschedule(
+        id,
+        rescheduleRequest,
+      );
+      setAppointments(
+        appointments.map((item) => (item.id === id ? updatedAppointment : item)),
+      );
+      setMessage('Reschedule request sent to hospital staff.');
+    } catch (error) {
+      setMessage('Reschedule request could not be sent.');
+    }
   };
 
   const cancelAppointment = (id) => {
@@ -239,6 +267,7 @@ export function useHealthLinkViewModel() {
     patientProfile: profile,
     reason,
     reasons,
+    requestReschedule,
     role,
     screen,
     setDepartment,
